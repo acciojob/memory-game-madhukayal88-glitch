@@ -1,38 +1,298 @@
-.App {
-  text-align: center;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  padding: 2rem;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-container {
+  max-width: 900px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.memory-game-container {
+  width: 100%;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #1a1a2e;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  text-align: center;
+  color: #6c757d;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.levels_container {
+  background: #f7fafc;
+  border-radius: 1rem;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e2e8f0;
+}
+
+.level-label {
+  display: block;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.level-buttons {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.level-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.level-option input[type="radio"] {
+  accent-color: #667eea;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.game-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e2e8f0;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.reset-btn {
+  padding: 0.5rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.cells_container {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0 auto;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 1rem;
+  border: 2px solid #e2e8f0;
+  min-height: 300px;
+  justify-content: center;
+}
+
+.cell {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 0.8rem;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: 1.5rem;
+  font-weight: 700;
   color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 50px;
+  min-height: 50px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.App-link {
-  color: #61dafb;
+.cell:hover:not(.flipped):not(.matched) {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.cell.flipped {
+  background: white;
+  color: #1a1a2e;
+  border: 3px solid #667eea;
+  transform: scale(0.95);
+}
+
+.cell.matched {
+  background: #48bb78;
+  color: white;
+  cursor: default;
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.cell.matched .cell-content {
+  font-size: 1.8rem;
+}
+
+.cell-content {
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.game-complete-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 3rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+  font-size: 2rem;
+  color: #1a1a2e;
+  margin-bottom: 0.5rem;
+}
+
+.modal-content p {
+  color: #4a5568;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.final-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.final-stats p {
+  font-size: 1rem;
+  color: #4a5568;
+}
+
+.final-stats strong {
+  color: #667eea;
+  font-size: 1.2rem;
+}
+
+.play-again-btn {
+  padding: 0.8rem 2.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 0.6rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.play-again-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
   }
-  to {
-    transform: rotate(360deg);
+
+  .app-container {
+    padding: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .game-stats {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+
+  .level-buttons {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .cell {
+    font-size: 1.2rem;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .modal-content {
+    padding: 2rem;
+  }
+
+  .final-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .cells_container {
+    gap: 0.5rem;
+    padding: 0.5rem;
   }
 }
