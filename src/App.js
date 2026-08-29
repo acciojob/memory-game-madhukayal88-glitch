@@ -2,21 +2,19 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  const [pairsCount, setPairsCount] = useState(8); // Default to Normal mode (8 pairs / 16 tiles)
+  const [pairsCount, setPairsCount] = useState(8); // Default to Normal (8 pairs = 16 tiles)
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
   const [matchedPairs, setMatchedPairs] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [isLockGrid, setIsLockGrid] = useState(false);
 
-  // Initialize or reset game grid
   const initGame = (numPairs = pairsCount) => {
     setFlippedCards([]);
     setMatchedPairs(0);
     setAttempts(0);
     setIsLockGrid(false);
 
-    // Create pair array and shuffle
     const numbers = [];
     for (let i = 1; i <= numPairs; i++) {
       numbers.push(i, i);
@@ -43,7 +41,6 @@ function App() {
   };
 
   const handleCardClick = (clickedCard) => {
-    // Prevent clicking locked grid, already flipped, or already matched tiles
     if (
       isLockGrid ||
       clickedCard.isFlipped ||
@@ -53,7 +50,6 @@ function App() {
       return;
     }
 
-    // Flip card
     const updatedCards = cards.map((card) =>
       card.id === clickedCard.id ? { ...card, isFlipped: true } : card
     );
@@ -62,14 +58,12 @@ function App() {
     const newFlipped = [...flippedCards, clickedCard];
     setFlippedCards(newFlipped);
 
-    // If two cards are flipped, check match
     if (newFlipped.length === 2) {
       setIsLockGrid(true);
       setAttempts((prev) => prev + 1);
 
       const [first, second] = newFlipped;
       if (first.val === second.val) {
-        // Match found
         setCards((prevCards) =>
           prevCards.map((card) =>
             card.val === first.val ? { ...card, isMatched: true } : card
@@ -79,7 +73,6 @@ function App() {
         setFlippedCards([]);
         setIsLockGrid(false);
       } else {
-        // Not a match: reset after delay
         setTimeout(() => {
           setCards((prevCards) =>
             prevCards.map((card) =>
@@ -102,7 +95,6 @@ function App() {
     <div className="game-wrapper">
       <h1>Memory Matching Game</h1>
 
-      {/* Level Selection Container */}
       <div className="levels_container">
         <label>
           <input
@@ -138,17 +130,15 @@ function App() {
           Hard (32 tiles)
         </label>
         <button id="start_btn" onClick={() => initGame(pairsCount)}>
-          Start / Restart Game
+          Start Game
         </button>
       </div>
 
-      {/* Stats Display */}
       <div className="stats_container">
         <span id="attempts_count">Attempts: {attempts}</span> |{' '}
         <span id="matches_count">Matches: {matchedPairs}</span>
       </div>
 
-      {/* Game Grid Container */}
       <div
         className="cells_container"
         style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
@@ -166,7 +156,6 @@ function App() {
         ))}
       </div>
 
-      {/* Win Banner */}
       {matchedPairs === pairsCount && (
         <div id="win_message">🎉 Game Completed! All pairs matched!</div>
       )}
