@@ -29,3 +29,10 @@ body {
   background: #8f8;
   cursor: default;
 }
+
+.result {
+  grid-column: 1 / -1;
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}
