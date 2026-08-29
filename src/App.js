@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  const [pairsCount, setPairsCount] = useState(8); // Default to Normal (8 pairs = 16 tiles)
-  const [cards, setCards] = useState([]);
-  const [flippedCards, setFlippedCards] = useState([]);
-  const [matchedPairs, setMatchedPairs] = useState(0);
-  const [attempts, setAttempts] = useState(0);
-  const [isLockGrid, setIsLockGrid] = useState(false);
+  return (
+    <div>
+      <h1>Memory Game</h1>
+    </div>
+  );
+}
+
+export default App;
+
 
   const initGame = (numPairs = pairsCount) => {
     setFlippedCards([]);
