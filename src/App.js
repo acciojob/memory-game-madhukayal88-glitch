@@ -1,13 +1,16 @@
-import React from 'react';
-import MemoryGame from './components/MemoryGame';
-import './styles.css';
+const express = require('express');
+const path = require('path');
 
-function App() {
-  return (
-    <div className="app-container">
-      <MemoryGame />
-    </div>
-  );
-}
+const app = express();
+const PORT = process.env.PORT || 8080;
 
-export default App;
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
