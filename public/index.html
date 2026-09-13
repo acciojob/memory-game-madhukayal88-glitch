@@ -1,60 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A number-pair memory matching game with three difficulty levels." />
-    <title>Memory Matching Game</title>
-    <link rel="stylesheet" href="/style.css" />
-  </head>
-  <body>
-    <main class="game-shell">
-      <header class="hero">
-        <p class="eyebrow">NODE.JS MEMORY GAME</p>
-        <h1>Match every pair</h1>
-        <p class="intro">Choose a level, reveal two tiles, and find matching numbers in as few attempts as you can.</p>
-      </header>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <h1>Memory Game</h1>
 
-      <section class="panel level-panel" aria-labelledby="difficulty-heading">
-        <h2 id="difficulty-heading">Choose difficulty</h2>
-        <div class="levels_container" role="radiogroup" aria-label="Difficulty level">
-          <label class="level-option" for="easy">
-            <input type="radio" id="easy" name="level" value="easy" />
-            <span class="level-copy"><strong>Easy</strong><small>8 tiles · 4 pairs</small></span>
-          </label>
-          <label class="level-option" for="normal">
-            <input type="radio" id="normal" name="level" value="normal" />
-            <span class="level-copy"><strong>Normal</strong><small>16 tiles · 8 pairs</small></span>
-          </label>
-          <label class="level-option" for="hard">
-            <input type="radio" id="hard" name="level" value="hard" />
-            <span class="level-copy"><strong>Hard</strong><small>32 tiles · 16 pairs</small></span>
-          </label>
-        </div>
-      </section>
+    <!-- Level Selection -->
+    <div class="levels_container">
+      <label>
+        <input type="radio" name="level" id="easy" value="easy" checked>
+        Easy (4 pairs)
+      </label>
+      <label>
+        <input type="radio" name="level" id="normal" value="normal">
+        Normal (8 pairs)
+      </label>
+      <label>
+        <input type="radio" name="level" id="hard" value="hard">
+        Hard (16 pairs)
+      </label>
+    </div>
 
-      <section class="game-area" aria-live="polite">
-        <div class="game-toolbar" hidden>
-          <div class="stat"><span>Attempts</span><strong id="attempts">0</strong></div>
-          <div class="stat"><span>Pairs</span><strong id="matches">0 <i>/</i> 0</strong></div>
-          <button class="restart-button" id="restart" type="button">New game</button>
-        </div>
+    <!-- Stats -->
+    <div class="stats">
+      <span>Attempts: <span id="attempts">0</span></span>
+      <span>Matches: <span id="matches">0</span> / <span id="total-pairs">4</span></span>
+    </div>
 
-        <div class="cells_container" aria-label="Memory tiles"></div>
+    <!-- Game Grid -->
+    <div class="cells_container" id="cells_container"></div>
 
-        <div class="empty-state" id="empty-state">
-          <span aria-hidden="true">✦</span>
-          <p>Select a difficulty to begin.</p>
-        </div>
+    <!-- Restart Button -->
+    <button id="restart">Restart Game</button>
 
-        <div class="result" id="result" hidden role="status">
-          <span aria-hidden="true">🎉</span>
-          <h2>All pairs solved!</h2>
-          <p></p>
-        </div>
-      </section>
-    </main>
+    <!-- Win Message -->
+    <div id="win-message" class="win-message hidden">
+      🎉 You Won! 🎉
+    </div>
+  </div>
 
-    <script src="/script.js"></script>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>
