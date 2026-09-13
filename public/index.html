@@ -7,40 +7,37 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="game-container">
-    <h1>Memory Game</h1>
 
-    <!-- Level Selection -->
-    <div class="levels_container">
-      <label>
-        <input type="radio" name="level" id="easy" value="easy" checked>
-        Easy (4 pairs)
-      </label>
-      <label>
-        <input type="radio" name="level" id="normal" value="normal">
-        Normal (8 pairs)
-      </label>
-      <label>
-        <input type="radio" name="level" id="hard" value="hard">
-        Hard (16 pairs)
-      </label>
+  <!-- LANDING PAGE -->
+  <div id="landing-page" class="page">
+    <div class="landing-box">
+      <h1 class="welcome-title">Welcome!</h1>
+      <div class="levels_container">
+        <label>
+          <input type="radio" name="level" id="easy" value="easy" checked>
+          Easy
+        </label>
+        <label>
+          <input type="radio" name="level" id="normal" value="normal">
+          Normal
+        </label>
+        <label>
+          <input type="radio" name="level" id="hard" value="hard">
+          Hard
+        </label>
+      </div>
+      <button id="start-btn">Start</button>
     </div>
+  </div>
 
-    <!-- Stats -->
-    <div class="stats">
-      <span>Attempts: <span id="attempts">0</span></span>
-      <span>Matches: <span id="matches">0</span> / <span id="total-pairs">4</span></span>
-    </div>
-
-    <!-- Game Grid -->
-    <div class="cells_container" id="cells_container"></div>
-
-    <!-- Restart Button -->
-    <button id="restart">Restart Game</button>
-
-    <!-- Win Message -->
-    <div id="win-message" class="win-message hidden">
-      🎉 You Won! 🎉
+  <!-- GAME PAGE -->
+  <div id="game-page" class="page hidden">
+    <div class="game-box">
+      <h1 class="game-title">GAmE YO</h1>
+      <p class="tries">Tries: <span id="tries">0</span></p>
+      <p id="solved-msg" class="solved-msg hidden">ALL SOLVED!</p>
+      <button id="new-game-btn" class="hidden">New Game</button>
+      <div class="cells_container" id="cells_container"></div>
     </div>
   </div>
 
