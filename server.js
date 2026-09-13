@@ -1,15 +1,17 @@
-const express = require("express");
-const path = require("path");
+const express = require('express');
+const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080;
 
-app.use(express.static(path.join(__dirname, "public")));
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get("/", (_request, response) => {
-  response.sendFile(path.join(__dirname, "public", "index.html"));
+// Serve index.html for root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(port, () => {
-  console.log(`Memory game is running at http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });
