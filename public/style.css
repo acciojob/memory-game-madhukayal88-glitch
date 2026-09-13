@@ -1,12 +1,12 @@
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: black;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -14,158 +14,159 @@ body {
   padding: 20px;
 }
 
-.game-container {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  max-width: 700px;
+.page {
   width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
-h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 20px;
+.hidden {
+  display: none !important;
+}
+
+/* ---------- LANDING PAGE ---------- */
+.landing-box {
+  background: #0000FF;
+  border: 15px solid white;
+  padding: 60px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 400px;
+  justify-content: center;
+}
+
+.welcome-title {
+  color: black;
+  font-size: 2.5rem;
+  font-weight: bold;
 }
 
 .levels_container {
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  gap: 30px;
+  align-items: center;
+  color: black;
+  font-size: 1.8rem;
 }
 
 .levels_container label {
-  cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: #f0f0f0;
-  transition: background 0.2s;
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.levels_container label:hover {
-  background: #e0e0e0;
-}
-
-.levels_container input[type="radio"]:checked + span,
-.levels_container label:has(input:checked) {
-  background: #667eea;
-  color: white;
-}
-
-.stats {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 20px;
+  gap: 10px;
+  cursor: pointer;
+  color: black;
   font-weight: bold;
-  color: #555;
 }
 
+.levels_container input[type="radio"] {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+#start-btn,
+#new-game-btn {
+  padding: 8px 30px;
+  font-size: 1.5rem;
+  font-family: Georgia, serif;
+  border: 2px solid black;
+  background: white;
+  color: black;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#start-btn:hover,
+#new-game-btn:hover {
+  background: #ddd;
+}
+
+/* ---------- GAME PAGE ---------- */
+.game-box {
+  background: #0000FF;
+  border: 15px solid white;
+  padding: 30px 40px;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 600px;
+}
+
+.game-title {
+  color: black;
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.tries {
+  color: black;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.solved-msg {
+  color: black;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  letter-spacing: 2px;
+}
+
+#new-game-btn {
+  margin-bottom: 20px;
+}
+
+/* ---------- GRID ---------- */
 .cells_container {
   display: grid;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
-  transition: all 0.3s;
+  gap: 20px;
+  justify-content: start;
+  margin-top: 20px;
 }
 
-/* Easy: 8 tiles -> 4x2 */
+/* Easy: 4 columns x 2 rows = 8 tiles */
 .cells_container.easy {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 120px);
+  grid-template-rows: repeat(2, 120px);
 }
 
-/* Normal: 16 tiles -> 4x4 */
+/* Normal: 4 columns x 4 rows = 16 tiles */
 .cells_container.normal {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 120px);
+  grid-template-rows: repeat(4, 120px);
 }
 
-/* Hard: 32 tiles -> 8x4 */
+/* Hard: 4 columns x 8 rows = 32 tiles */
 .cells_container.hard {
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(4, 120px);
+  grid-template-rows: repeat(8, 120px);
 }
 
 .cell {
-  aspect-ratio: 1;
-  background: #667eea;
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
+  background: #FFA500;
+  color: black;
   font-size: 1.5rem;
   font-weight: bold;
-  color: white;
-  transition: transform 0.2s, background 0.2s;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 8px;
+  cursor: pointer;
   user-select: none;
-  min-width: 50px;
-  min-height: 50px;
+  border: none;
+  transition: opacity 0.2s;
 }
 
-.cell:hover:not(.matched):not(.revealed) {
-  transform: scale(1.05);
-  background: #5568d3;
-}
-
-.cell.revealed {
-  background: #ffd166;
-  color: #333;
+.cell:hover {
+  opacity: 0.9;
 }
 
 .cell.matched {
-  background: #06d6a0;
+  background: #FFA500;
   cursor: default;
-  color: white;
-}
-
-.cell.matched::after {
-  content: '✓';
-}
-
-#restart {
-  display: block;
-  margin: 0 auto;
-  padding: 12px 32px;
-  font-size: 1rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  background: #764ba2;
-  color: white;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-#restart:hover {
-  background: #5a3780;
-}
-
-.win-message {
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #06d6a0;
-  margin-top: 16px;
-  padding: 12px;
-  background: #e8fff8;
-  border-radius: 8px;
-}
-
-.hidden {
-  display: none;
-}
-
-@media (max-width: 600px) {
-  .cells_container.hard {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .cell {
-    font-size: 1rem;
-    min-width: 40px;
-    min-height: 40px;
-  }
 }
