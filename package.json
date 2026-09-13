@@ -4,9 +4,16 @@
   "description": "Node.js Memory Matching Game",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "cypress run"
   },
   "dependencies": {
     "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "cypress": "^13.6.0"
+  },
+  "engines": {
+    "node": ">=16"
   }
 }
