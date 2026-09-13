@@ -1,145 +1,210 @@
-(() => {
-  "use strict";
+(function () {
+  'use strict';
 
+  // ---------- Configuration ----------
   const LEVELS = {
-    easy: { pairs: 4 },
-    normal: { pairs: 8 },
-    hard: { pairs: 16 },
+    easy: { tiles: 8, pairs: 4, cols: 4 },
+    normal: { tiles: 16, pairs: 8, cols: 4 },
+    hard: { tiles: 32, pairs: 16, cols: 8 }
   };
 
-  const grid = document.querySelector(".cells_container");
-  const toolbar = document.querySelector(".game-toolbar");
-  const emptyState = document.getElementById("empty-state");
-  const attemptsNode = document.getElementById("attempts");
-  const matchesNode = document.getElementById("matches");
-  const result = document.getElementById("result");
-  const resultText = result.querySelector("p");
-  const restart = document.getElementById("restart");
-  const levelInputs = document.querySelectorAll('input[name="level"]');
+  // ---------- State ----------
+  let state = {
+    level: 'easy',
+    tiles: [],          // array of tile objects { id, value, matched, revealed }
+    firstPick: null,    // index of first flipped tile
+    secondPick: null,   // index of second flipped tile
+    lockBoard: false,   // prevents clicking during comparison
+    attempts: 0,        // counts only valid attempts (2 tiles flipped)
+    matches: 0,
+    totalPairs: 4
+  };
 
-  let activeLevel = null;
-  let firstTile = null;
-  let secondTile = null;
-  let attempts = 0;
-  let matchedPairs = 0;
-  let boardLocked = false;
-  let resetTimer = null;
+  // ---------- DOM Elements ----------
+  const cellsContainer = document.getElementById('cells_container');
+  const attemptsEl = document.getElementById('attempts');
+  const matchesEl = document.getElementById('matches');
+  const totalPairsEl = document.getElementById('total-pairs');
+  const winMessageEl = document.getElementById('win-message');
+  const restartBtn = document.getElementById('restart');
+  const levelRadios = {
+    easy: document.getElementById('easy'),
+    normal: document.getElementById('normal'),
+    hard: document.getElementById('hard')
+  };
 
-  function shuffle(values) {
-    const copy = [...values];
-    for (let index = copy.length - 1; index > 0; index -= 1) {
-      const randomIndex = Math.floor(Math.random() * (index + 1));
-      [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
+  // ---------- Utilities ----------
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
     }
-    return copy;
+    return array;
   }
 
-  function createDeck(pairCount) {
+  function generateTiles(pairs) {
     const values = [];
-    for (let value = 1; value <= pairCount; value += 1) values.push(value, value);
-    return shuffle(values);
+    for (let i = 1; i <= pairs; i++) {
+      values.push(i, i);
+    }
+    return shuffle(values).map((value, index) => ({
+      id: index,
+      value,
+      matched: false,
+      revealed: false
+    }));
   }
 
-  function updateScore() {
-    attemptsNode.textContent = attempts;
-    matchesNode.innerHTML = `${matchedPairs} <i>/</i> ${LEVELS[activeLevel].pairs}`;
+  // ---------- Rendering ----------
+  function renderBoard() {
+    cellsContainer.innerHTML = '';
+    cellsContainer.className = `cells_container ${state.level}`;
+
+    state.tiles.forEach((tile, index) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.index = index;
+      cell.dataset.value = tile.value;
+
+      if (tile.matched) {
+        cell.classList.add('matched');
+      } else if (tile.revealed) {
+        cell.classList.add('revealed');
+        cell.textContent = tile.value;
+      } else {
+        cell.textContent = '';
+      }
+
+      cell.addEventListener('click', () => handleTileClick(index));
+      cellsContainer.appendChild(cell);
+    });
   }
 
-  function clearSelection() {
-    firstTile = null;
-    secondTile = null;
-    boardLocked = false;
+  function updateStats() {
+    attemptsEl.textContent = state.attempts;
+    matchesEl.textContent = state.matches;
+    totalPairsEl.textContent = state.totalPairs;
   }
 
-  function reveal(tile) {
-    tile.classList.add("flipped");
-    tile.textContent = tile.dataset.value;
-    tile.setAttribute("aria-label", `Tile ${tile.dataset.value}`);
+  function updateCellUI(index) {
+    const cell = cellsContainer.querySelector(`[data-index="${index}"]`);
+    if (!cell) return;
+    const tile = state.tiles[index];
+
+    if (tile.matched) {
+      cell.classList.add('matched');
+      cell.classList.remove('revealed');
+      cell.textContent = '';
+    } else if (tile.revealed) {
+      cell.classList.add('revealed');
+      cell.textContent = tile.value;
+    } else {
+      cell.classList.remove('revealed', 'matched');
+      cell.textContent = '';
+    }
   }
 
-  function hide(tile) {
-    tile.classList.remove("flipped");
-    tile.textContent = "";
-    tile.setAttribute("aria-label", "Hidden tile");
-  }
+  // ---------- Game Logic ----------
+  function handleTileClick(index) {
+    // Guard conditions
+    if (state.lockBoard) return;
+    const tile = state.tiles[index];
+    if (tile.matched || tile.revealed) return;
 
-  function showCompletion() {
-    const noun = attempts === 1 ? "attempt" : "attempts";
-    resultText.textContent = `You completed ${activeLevel} mode in ${attempts} ${noun}.`;
-    result.hidden = false;
-  }
+    // Reveal the tile
+    tile.revealed = true;
+    updateCellUI(index);
 
-  function handleTileClick(tile) {
-    if (boardLocked || tile.classList.contains("flipped") || tile.classList.contains("matched")) return;
-
-    reveal(tile);
-    if (!firstTile) {
-      firstTile = tile;
+    // First pick
+    if (state.firstPick === null) {
+      state.firstPick = index;
       return;
     }
 
-    secondTile = tile;
-    attempts += 1;
-    updateScore();
+    // Second pick
+    state.secondPick = index;
+    state.attempts++;
+    updateStats();
 
-    if (firstTile.dataset.value === secondTile.dataset.value) {
-      firstTile.classList.add("matched");
-      secondTile.classList.add("matched");
-      firstTile.disabled = true;
-      secondTile.disabled = true;
-      matchedPairs += 1;
-      updateScore();
-      clearSelection();
-      if (matchedPairs === LEVELS[activeLevel].pairs) showCompletion();
-      return;
-    }
-
-    boardLocked = true;
-    resetTimer = window.setTimeout(() => {
-      hide(firstTile);
-      hide(secondTile);
-      clearSelection();
-      resetTimer = null;
-    }, 700);
+    // Lock board while comparing
+    state.lockBoard = true;
+    checkMatch();
   }
 
+  function checkMatch() {
+    const firstTile = state.tiles[state.firstPick];
+    const secondTile = state.tiles[state.secondPick];
+
+    if (firstTile.value === secondTile.value) {
+      // Match found
+      firstTile.matched = true;
+      secondTile.matched = true;
+      state.matches++;
+      updateStats();
+
+      updateCellUI(state.firstPick);
+      updateCellUI(state.secondPick);
+
+      resetPicks();
+
+      if (state.matches === state.totalPairs) {
+        endGame();
+      }
+    } else {
+      // No match — flip back after delay
+      setTimeout(() => {
+        firstTile.revealed = false;
+        secondTile.revealed = false;
+
+        updateCellUI(state.firstPick);
+        updateCellUI(state.secondPick);
+
+        resetPicks();
+      }, 800);
+    }
+  }
+
+  function resetPicks() {
+    state.firstPick = null;
+    state.secondPick = null;
+    state.lockBoard = false;
+  }
+
+  function endGame() {
+    winMessageEl.classList.remove('hidden');
+    winMessageEl.textContent = `🎉 You Won in ${state.attempts} attempts! 🎉`;
+  }
+
+  // ---------- Game Setup ----------
   function startGame(level) {
-    if (resetTimer) {
-      window.clearTimeout(resetTimer);
-      resetTimer = null;
-    }
+    const config = LEVELS[level];
+    state = {
+      level,
+      tiles: generateTiles(config.pairs),
+      firstPick: null,
+      secondPick: null,
+      lockBoard: false,
+      attempts: 0,
+      matches: 0,
+      totalPairs: config.pairs
+    };
 
-    activeLevel = level;
-    attempts = 0;
-    matchedPairs = 0;
-    clearSelection();
-    grid.replaceChildren();
-    grid.className = `cells_container ${level}`;
-
-    createDeck(LEVELS[level].pairs).forEach((value, index) => {
-      const tile = document.createElement("button");
-      tile.type = "button";
-      tile.className = "cell";
-      tile.dataset.value = String(value);
-      tile.dataset.index = String(index);
-      tile.setAttribute("aria-label", "Hidden tile");
-      tile.addEventListener("click", () => handleTileClick(tile));
-      grid.append(tile);
-    });
-
-    emptyState.hidden = true;
-    toolbar.hidden = false;
-    result.hidden = true;
-    updateScore();
+    winMessageEl.classList.add('hidden');
+    renderBoard();
+    updateStats();
   }
 
-  levelInputs.forEach((input) => {
-    input.addEventListener("change", (event) => {
-      if (event.target.checked) startGame(event.target.value);
+  // ---------- Event Listeners ----------
+  Object.entries(levelRadios).forEach(([level, radio]) => {
+    radio.addEventListener('change', (e) => {
+      if (e.target.checked) startGame(level);
     });
   });
 
-  restart.addEventListener("click", () => {
-    if (activeLevel) startGame(activeLevel);
+  restartBtn.addEventListener('click', () => {
+    startGame(state.level);
   });
+
+  // ---------- Init ----------
+  startGame('easy');
 })();
