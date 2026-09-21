@@ -1,28 +1,33 @@
 // ---------- Configuration ----------
-const LEVELS = {
-  easy: { tiles: 8, pairs: 4 },
-  normal: { tiles: 16, pairs: 8 },
-  hard: { tiles: 32, pairs: 16 },
+const DIFFICULTY_CONFIG = {
+  easy:   { tiles: 8,  pairs: 4  },
+  normal: { tiles: 16, pairs: 8  },
+  hard:   { tiles: 32, pairs: 16 }
 };
 
 // ---------- State ----------
-let currentLevel = 'easy';
-let firstCard = null;
-let secondCard = null;
-let lockBoard = false;
-let attempts = 0;
-let matches = 0;
-let totalPairs = LEVELS.easy.pairs;
+let state = {
+  difficulty: 'easy',
+  tiles: [],
+  firstTile: null,
+  secondTile: null,
+  lockBoard: false,
+  attempts: 0,
+  matches: 0,
+  totalPairs: 4
+};
 
 // ---------- DOM References ----------
 const cellsContainer = document.getElementById('cells_container');
 const attemptsEl = document.getElementById('attempts');
 const matchesEl = document.getElementById('matches');
-const totalPairsEl = document.getElementById('totalPairs');
-const resetBtn = document.getElementById('resetBtn');
-const levelRadios = document.querySelectorAll('input[name="level"]');
+const totalPairsEl = document.getElementById('total-pairs');
+const winMessageEl = document.getElementById('win-message');
+const finalAttemptsEl = document.getElementById('final-attempts');
+const restartBtn = document.getElementById('restart');
+const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
 
-// ---------- Helper: shuffle array (Fisher-Yates) ----------
+// ---------- Helpers ----------
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -31,125 +36,120 @@ function shuffle(array) {
   return array;
 }
 
-// ---------- Build deck ----------
-function buildDeck(pairs) {
-  const deck = [];
+function generateTiles(pairs) {
+  const values = [];
   for (let i = 1; i <= pairs; i++) {
-    deck.push(i, i); // two of each number
+    values.push(i, i);
   }
-  return shuffle(deck);
+  return shuffle(values);
 }
 
-// ---------- Render the board ----------
+// ---------- Game Setup ----------
+function startGame(difficulty) {
+  const config = DIFFICULTY_CONFIG[difficulty];
+  state = {
+    difficulty,
+    tiles: generateTiles(config.pairs),
+    firstTile: null,
+    secondTile: null,
+    lockBoard: false,
+    attempts: 0,
+    matches: 0,
+    totalPairs: config.pairs
+  };
+
+  attemptsEl.textContent = '0';
+  matchesEl.textContent = '0';
+  totalPairsEl.textContent = config.pairs;
+  winMessageEl.classList.add('hidden');
+
+  renderBoard();
+}
+
 function renderBoard() {
-  const { tiles, pairs } = LEVELS[currentLevel];
-  totalPairs = pairs;
   cellsContainer.innerHTML = '';
-  cellsContainer.className = `cells_container ${currentLevel}`;
+  cellsContainer.className = `cells_container ${state.difficulty}`;
 
-  const deck = buildDeck(pairs);
-
-  deck.forEach((value) => {
+  state.tiles.forEach((value, index) => {
     const cell = document.createElement('div');
     cell.classList.add('cell');
+    cell.dataset.index = index;
     cell.dataset.value = value;
     cell.textContent = ''; // hidden by default
-    cell.addEventListener('click', () => handleCardClick(cell));
+    cell.addEventListener('click', () => handleTileClick(cell));
     cellsContainer.appendChild(cell);
   });
-
-  updateStats();
 }
 
-// ---------- Handle click on a card ----------
-function handleCardClick(cell) {
-  // Prevent clicking already flipped/matched cards or while board is locked
-  if (
-    lockBoard ||
-    cell.classList.contains('flipped') ||
-    cell.classList.contains('matched')
-  ) {
-    return;
-  }
+// ---------- Game Logic ----------
+function handleTileClick(cell) {
+  // Ignore if board is locked, cell already flipped/matched, or same tile clicked twice
+  if (state.lockBoard) return;
+  if (cell.classList.contains('flipped') || cell.classList.contains('matched')) return;
 
-  // Flip the card
+  // Reveal tile
   cell.classList.add('flipped');
   cell.textContent = cell.dataset.value;
 
-  if (!firstCard) {
-    // First card of the pair
-    firstCard = cell;
+  if (!state.firstTile) {
+    state.firstTile = cell;
     return;
   }
 
-  // Second card of the pair
-  secondCard = cell;
-  attempts++;
-  updateStats();
+  // Second tile selected
+  state.secondTile = cell;
+  state.attempts++;
+  attemptsEl.textContent = state.attempts;
+
   checkMatch();
 }
 
-// ---------- Check if two flipped cards match ----------
 function checkMatch() {
-  const isMatch = firstCard.dataset.value === secondCard.dataset.value;
+  const first = state.firstTile;
+  const second = state.secondTile;
+
+  const isMatch = first.dataset.value === second.dataset.value;
 
   if (isMatch) {
-    // Disable further clicks on matched cards
-    firstCard.classList.add('matched');
-    secondCard.classList.add('matched');
-    matches++;
-    updateStats();
-    resetFlipped();
-    checkWin();
+    first.classList.add('matched');
+    second.classList.add('matched');
+    first.classList.remove('flipped');
+    second.classList.remove('flipped');
+
+    state.matches++;
+    matchesEl.textContent = state.matches;
+
+    resetTurn();
+
+    if (state.matches === state.totalPairs) {
+      endGame();
+    }
   } else {
-    // Lock board and flip back after a short delay
-    lockBoard = true;
+    // Lock board briefly to prevent extra clicks
+    state.lockBoard = true;
     setTimeout(() => {
-      firstCard.classList.remove('flipped');
-      secondCard.classList.remove('flipped');
-      firstCard.textContent = '';
-      secondCard.textContent = '';
-      resetFlipped();
+      first.classList.remove('flipped');
+      second.classList.remove('flipped');
+      first.textContent = '';
+      second.textContent = '';
+      resetTurn();
     }, 800);
   }
 }
 
-// ---------- Reset first/second card refs ----------
-function resetFlipped() {
-  firstCard = null;
-  secondCard = null;
-  lockBoard = false;
+function resetTurn() {
+  state.firstTile = null;
+  state.secondTile = null;
+  state.lockBoard = false;
 }
 
-// ---------- Update stats display ----------
-function updateStats() {
-  attemptsEl.textContent = attempts;
-  matchesEl.textContent = matches;
-  totalPairsEl.textContent = totalPairs;
+function endGame() {
+  winMessageEl.classList.remove('hidden');
+  finalAttemptsEl.textContent = state.attempts;
 }
 
-// ---------- Check win condition ----------
-function checkWin() {
-  if (matches === totalPairs) {
-    setTimeout(() => {
-      alert(`🎉 You won in ${attempts} attempts!`);
-    }, 300);
-  }
-}
-
-// ---------- Start / reset the game ----------
-function startGame(level) {
-  currentLevel = level;
-  firstCard = null;
-  secondCard = null;
-  lockBoard = false;
-  attempts = 0;
-  matches = 0;
-  renderBoard();
-}
-
-// ---------- Event listeners ----------
-levelRadios.forEach((radio) => {
+// ---------- Event Listeners ----------
+difficultyRadios.forEach(radio => {
   radio.addEventListener('change', (e) => {
     if (e.target.checked) {
       startGame(e.target.value);
@@ -157,9 +157,9 @@ levelRadios.forEach((radio) => {
   });
 });
 
-resetBtn.addEventListener('click', () => {
-  startGame(currentLevel);
+restartBtn.addEventListener('click', () => {
+  startGame(state.difficulty);
 });
 
-// ---------- Initialize ----------
+// ---------- Init ----------
 startGame('easy');
