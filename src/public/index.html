@@ -1,44 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Memory Matching Game</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="game-wrapper">
     <h1>Memory Matching Game</h1>
 
-    <!-- Level Selection Container -->
+    <!-- Level Selection -->
     <div class="levels_container">
       <label>
-        <input type="radio" name="difficulty" id="easy" value="4"> Easy (8 tiles)
+        <input type="radio" id="easy" name="difficulty" value="easy" checked />
+        Easy (4 pairs)
       </label>
       <label>
-        <input type="radio" name="difficulty" id="normal" value="8" checked> Normal (16 tiles)
+        <input type="radio" id="normal" name="difficulty" value="normal" />
+        Normal (8 pairs)
       </label>
       <label>
-        <input type="radio" name="difficulty" id="hard" value="16"> Hard (32 tiles)
+        <input type="radio" id="hard" name="difficulty" value="hard" />
+        Hard (16 pairs)
       </label>
-      <button id="start_btn">Start / Restart Game</button>
     </div>
 
-    <!-- Stats Display -->
-    <div class="stats_container">
-      <span id="attempts_count">Attempts: 0</span>
-      <span id="matches_count">Matches: 0</span>
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>Attempts: <strong id="attempts">0</strong></span>
+      <span>Matches: <strong id="matches">0</strong> / <strong id="total-pairs">4</strong></span>
+      <button id="restart">Restart</button>
     </div>
 
-    <!-- Game Grid Container -->
-    <div class="cells_container" id="grid"></div>
+    <!-- Game Grid -->
+    <div class="cells_container" id="cells_container"></div>
 
-    <!-- Win Banner -->
-    <div id="win_message" class="hidden">
-      🎉 Game Completed! All pairs matched!
+    <!-- Win Message -->
+    <div id="win-message" class="win-message hidden">
+      🎉 You solved it in <span id="final-attempts">0</span> attempts!
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
