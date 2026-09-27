@@ -1,15 +1,22 @@
 {
   "name": "memory-game-madhukayal88-glitch",
   "version": "1.0.0",
-  "description": "Node.js Memory Matching Game",
+  "description": "Memory Matching Game — match pairs of numbers across Easy/Normal/Hard levels with minimal attempts.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "npx cypress run",
+    "test:open": "npx cypress open"
   },
   "dependencies": {
     "express": "^4.18.2"
   },
+  "devDependencies": {
+    "cypress": "^13.0.0",
+    "chai": "^4.3.7"
+  },
   "engines": {
     "node": ">=16"
-  }
+  },
+  "license": "MIT"
 }
