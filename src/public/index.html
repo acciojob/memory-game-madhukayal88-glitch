@@ -7,41 +7,35 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="game-wrapper">
+  <main class="game-container">
     <h1>Memory Matching Game</h1>
+    <p class="instructions">
+      Match pairs of identical numbers to win. Fewer attempts is better.
+    </p>
 
     <!-- Level Selection -->
-    <div class="levels_container">
-      <label>
-        <input type="radio" id="easy" name="difficulty" value="easy" checked />
-        Easy (4 pairs)
-      </label>
-      <label>
-        <input type="radio" id="normal" name="difficulty" value="normal" />
-        Normal (8 pairs)
-      </label>
-      <label>
-        <input type="radio" id="hard" name="difficulty" value="hard" />
-        Hard (16 pairs)
-      </label>
-    </div>
+    <section class="levels_container" aria-label="Level selection">
+      <h2>Choose a Level</h2>
+      <label for="easy">Easy (4 pairs)</label>
+      <input type="radio" id="easy" name="level" value="easy" checked />
 
-    <!-- Status Bar -->
-    <div class="status-bar">
-      <span>Attempts: <strong id="attempts">0</strong></span>
-      <span>Matches: <strong id="matches">0</strong> / <strong id="total-pairs">4</strong></span>
-      <button id="restart">Restart</button>
-    </div>
+      <label for="normal">Normal (8 pairs)</label>
+      <input type="radio" id="normal" name="level" value="normal" />
 
-    <!-- Game Grid -->
-    <div class="cells_container" id="cells_container"></div>
+      <label for="hard">Hard (16 pairs)</label>
+      <input type="radio" id="hard" name="level" value="hard" />
 
-    <!-- Win Message -->
-    <div id="win-message" class="win-message hidden">
-      🎉 You solved it in <span id="final-attempts">0</span> attempts!
-    </div>
-  </div>
+      <button id="start-button">Start Game</button>
+    </section>
 
-  <script src="script.js"></script>
+    <!-- Game Board (hidden until a level is chosen) -->
+    <section id="game-board" class="game-board" style="display: none;">
+      <p id="attempts" aria-live="polite">Attempts: 0</p>
+      <div class="cells_container" role="list" aria-label="Game tiles"></div>
+      <p id="status-message" class="status-message" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>
