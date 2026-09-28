@@ -1,268 +1,138 @@
-/**
- * app.js — Memory Matching Game logic.
- *
- * Architecture:
- *   - State object tracks level, tiles, attempts, pairsMatched, selected.
- *   - generateTiles(level) creates a deterministic set of numbers (1..N duplicated).
- *   - renderGrid() builds DOM cells with data-value attributes.
- *   - onCellClick handles selection, match check, mismatch, and game completion.
- *   - completeGame disables interaction and shows a win message.
- *
- * Exposed globals: `window.memoryGame` for test/debugging convenience.
- */
+'use strict';
 
-(function () {
-  'use strict';
+const PAIRS_BY_LEVEL = { easy: 4, normal: 8, hard: 16 };
 
-  // ===== Configuration =====
-  const LEVEL_CONFIG = {
-    easy:   { pairs: 4,  cols: 4 },
-    normal: { pairs: 8,  cols: 4 },
-    hard:   { pairs: 16, cols: 4 },
-  };
+const landingEl = document.getElementById('landing');
+const gameEl = document.getElementById('game');
+const cellsContainer = document.querySelector('.cells_container');
+const attemptsEl = document.getElementById('attempts');
+const levelTitleEl = document.getElementById('level_title');
+const statusEl = document.getElementById('status');
 
-  // ===== State =====
-  let state = {
-    level: 'easy',
-    tiles: [],          // array of { value, el } — value is the number shown
-    attempts: 0,
-    pairsMatched: 0,
-    selected: null,     // reference to the currently selected tile element
-    gameSolved: false,
-  };
+let currentLevel = null;
+let firstTile = null;
+let lockBoard = false;
+let attempts = 0;
+let matchedPairs = 0;
+let totalPairs = 0;
 
-  // ===== DOM References =====
-  const gameBoard    = document.getElementById('game-board');
-  const cellsContainer = document.querySelector('.cells_container');
-  const attemptsEl   = document.getElementById('attempts');
-  const statusMsg    = document.getElementById('status-message');
-  const startButton  = document.getElementById('start-button');
+// --- Level selection ---
 
-  // ===== Helpers =====
+document.querySelectorAll('.levels_container input[name="level"]').forEach((radio) => {
+  radio.addEventListener('change', (event) => startGame(event.target.value));
+});
 
-  /**
-   * Generate an array of numbers for a given level.
-   * For N pairs, use numbers 1..N each appearing exactly twice.
-   * Shuffle the array so pairs are not adjacent (deterministic shuffle via simple swap).
-   *
-   * @param {string} level - 'easy' | 'normal' | 'hard'
-   * @returns {number[]} shuffled array of length N*2
-   */
-  function generateTiles(level) {
-    const { pairs } = LEVEL_CONFIG[level];
-    const numbers = [];
-    for (let i = 1; i <= pairs; i++) {
-      numbers.push(i, i);
-    }
+document.getElementById('restart').addEventListener('click', () => {
+  if (currentLevel) startGame(currentLevel);
+});
 
-    // Fisher-Yates shuffle (simple, deterministic enough for a single run)
-    for (let i = numbers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
-    }
+document.getElementById('change_level').addEventListener('click', showLanding);
 
-    return numbers;
-  }
+function startGame(level) {
+  currentLevel = level;
+  totalPairs = PAIRS_BY_LEVEL[level];
+  matchedPairs = 0;
+  attempts = 0;
+  firstTile = null;
+  lockBoard = false;
 
-  /**
-   * Render the grid of tiles into the cells container.
-   * Each tile gets:
-   *   - class .cell
-   *   - data-value attribute (the number)
-   *   - textContent = the number
-   *
-   * @param {number[]} values - array of numbers to render
-   */
-  function renderGrid(values) {
-    cellsContainer.innerHTML = '';
-    state.tiles = [];
+  attemptsEl.textContent = '0';
+  levelTitleEl.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+  statusEl.classList.add('hidden');
+  landingEl.classList.add('hidden');
+  gameEl.classList.remove('hidden');
 
-    values.forEach((value, index) => {
-      const cell = document.createElement('div');
-      cell.classList.add('cell');
-      cell.textContent = value;
-      cell.dataset.value = value;
-      cell.dataset.index = index;
-      cell.setAttribute('role', 'listitem');
-      cell.setAttribute('aria-label', `Tile showing ${value}`);
-      cell.addEventListener('click', () => onCellClick(cell));
-      cellsContainer.appendChild(cell);
+  renderTiles();
+}
 
-      state.tiles.push({ value, el: cell });
-    });
-  }
-
-  /**
-   * Update the attempts display in the DOM.
-   */
-  function updateAttemptsDisplay() {
-    attemptsEl.textContent = `Attempts: ${state.attempts}`;
-  }
-
-  /**
-   * Clear any selected state from the grid.
-   */
-  function clearSelection() {
-    state.tiles.forEach(({ el }) => {
-      el.classList.remove('selected', 'revealed');
-    });
-    state.selected = null;
-  }
-
-  /**
-   * Handle a tile click.
-   *
-   * Behavior:
-   *   - If game is solved, ignore.
-   *   - If the clicked tile is already matched, ignore.
-   *   - If the same tile is clicked twice, deselect and do NOT count an attempt.
-   *   - If a first tile is selected and a second is clicked:
-   *     - If same value → mark both matched, increment pairsMatched, check win.
-   *     - If different value → increment attempts, reveal both briefly, then flip back.
-   *
-   * @param {HTMLElement} cell - the clicked tile element
-   */
-  function onCellClick(cell) {
-    if (state.gameSolved) return;
-
-    // Ignore clicks on already-matched tiles
-    if (cell.classList.contains('matched')) return;
-
-    // If no tile is currently selected, select this one
-    if (!state.selected) {
-      cell.classList.add('selected');
-      state.selected = cell;
-      return;
-    }
-
-    // If the same tile is clicked again, deselect it (no attempt counted)
-    if (state.selected === cell) {
-      cell.classList.remove('selected');
-      state.selected = null;
-      return;
-    }
-
-    // A second tile has been clicked — evaluate the pair
-    const firstEl  = state.selected;
-    const firstVal = parseInt(firstEl.dataset.value, 10);
-    const secondVal = parseInt(cell.dataset.value, 10);
-
-    // Deselect the first tile's highlight before processing
-    firstEl.classList.remove('selected');
-    state.selected = null;
-
-    if (firstVal === secondVal) {
-      // Correct match
-      checkMatch(firstEl, cell);
-    } else {
-      // Mismatch
-      handleMismatch(firstEl, cell);
-    }
-  }
-
-  /**
-   * Mark two tiles as matched.
-   *
-   * @param {HTMLElement} el1 - first matched tile
-   * @param {HTMLElement} el2 - second matched tile
-   */
-  function checkMatch(el1, el2) {
-    el1.classList.add('matched');
-    el2.classList.add('matched');
-    el1.style.pointerEvents = 'none';
-    el2.style.pointerEvents = 'none';
-
-    state.pairsMatched += 1;
-
-    // Check if the game is complete
-    const totalPairs = LEVEL_CONFIG[state.level].pairs;
-    if (state.pairsMatched === totalPairs) {
-      completeGame();
-    }
-  }
-
-  /**
-   * Handle a mismatch: reveal both tiles briefly, then flip back.
-   * Increment the attempt counter.
-   *
-   * @param {HTMLElement} el1 - first tile
-   * @param {HTMLElement} el2 - second tile
-   */
-  function handleMismatch(el1, el2) {
-    state.attempts += 1;
-    updateAttemptsDisplay();
-
-    el1.classList.add('revealed');
-    el2.classList.add('revealed');
-
-    // After a short delay, flip both back
-    setTimeout(() => {
-      el1.classList.remove('revealed');
-      el2.classList.remove('revealed');
-    }, 600);
-  }
-
-  /**
-   * Game is solved: show a win message and disable further interaction.
-   */
-  function completeGame() {
-    state.gameSolved = true;
-    statusMsg.textContent = `Solved in ${state.attempts} attempts! 🎉`;
-    statusMsg.style.color = '#4ecdc4';
-
-    // Disable all tiles
-    state.tiles.forEach(({ el }) => {
-      el.style.pointerEvents = 'none';
-      el.classList.add('matched');
-    });
-  }
-
-  // ===== Level / Start Handler =====
-
-  /**
-   * Start (or restart) the game with the currently selected level.
-   */
-  function startGame() {
-    const selectedLevel = document.querySelector('input[name="level"]:checked').value;
-    state.level = selectedLevel;
-    state.attempts = 0;
-    state.pairsMatched = 0;
-    state.selected = null;
-    state.gameSolved = false;
-
-    statusMsg.textContent = '';
-    updateAttemptsDisplay();
-
-    const values = generateTiles(selectedLevel);
-    renderGrid(values);
-
-    // Show the game board
-    gameBoard.style.display = 'flex';
-    document.querySelector('.levels_container').style.display = 'none';
-  }
-
-  // ===== Event Wiring =====
-
-  document.addEventListener('DOMContentLoaded', () => {
-    startButton.addEventListener('click', startGame);
-
-    // Optional: allow changing level via radio without clicking Start
-    // (The Start button is the primary trigger; radios just update the checked value)
-    document.querySelectorAll('input[name="level"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        // No action needed — startGame reads the checked value
-      });
-    });
+function showLanding() {
+  currentLevel = null;
+  gameEl.classList.add('hidden');
+  landingEl.classList.remove('hidden');
+  document.querySelectorAll('.levels_container input[name="level"]').forEach((r) => {
+    r.checked = false;
   });
+}
 
-  // Expose minimal API for debugging / tests
-  window.memoryGame = {
-    state,
-    generateTiles,
-    startGame,
-    onCellClick,
-    checkMatch,
-    handleMismatch,
-    completeGame,
-  };
-})();
+// --- Board ---
+
+function renderTiles() {
+  const numbers = [];
+  for (let i = 1; i <= totalPairs; i += 1) {
+    numbers.push(i, i);
+  }
+  shuffle(numbers);
+
+  cellsContainer.innerHTML = '';
+  cellsContainer.className = 'cells_container ' + currentLevel;
+
+  numbers.forEach((number) => {
+    const tile = document.createElement('div');
+    tile.className = 'cell';
+    tile.dataset.value = String(number);
+
+    const label = document.createElement('span');
+    label.className = 'tile_number';
+    label.textContent = String(number);
+    tile.appendChild(label);
+
+    tile.addEventListener('click', () => handleTileClick(tile));
+    cellsContainer.appendChild(tile);
+  });
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// --- Gameplay ---
+
+function handleTileClick(tile) {
+  // Edge cases: ignore clicks while a mismatched pair is being shown,
+  // on already matched tiles, or on the tile that is already flipped.
+  if (lockBoard) return;
+  if (tile.classList.contains('matched')) return;
+  if (tile.classList.contains('flipped')) return;
+
+  reveal(tile);
+
+  if (!firstTile) {
+    firstTile = tile;
+    return;
+  }
+
+  // Second tile flipped: this counts as one complete attempt.
+  attempts += 1;
+  attemptsEl.textContent = String(attempts);
+
+  if (firstTile.dataset.value === tile.dataset.value) {
+    firstTile.classList.add('matched');
+    tile.classList.add('matched');
+    firstTile = null;
+    matchedPairs += 1;
+    if (matchedPairs === totalPairs) {
+      statusEl.classList.remove('hidden');
+    }
+  } else {
+    lockBoard = true;
+    const first = firstTile;
+    firstTile = null;
+    setTimeout(() => {
+      hide(first);
+      hide(tile);
+      lockBoard = false;
+    }, 700);
+  }
+}
+
+function reveal(tile) {
+  tile.classList.add('flipped');
+}
+
+function hide(tile) {
+  tile.classList.remove('flipped');
+}
