@@ -1,46 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memory Game</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Matching Game</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-  <!-- LANDING PAGE -->
-  <div id="landing-page" class="page">
-    <div class="landing-box">
-      <h1 class="welcome-title">Welcome!</h1>
+  <main class="page">
+    <section id="landing" class="landing">
+      <h1>Memory Matching Game</h1>
+      <p>Flip two tiles at a time and match all pairs in the fewest attempts.</p>
       <div class="levels_container">
-        <label>
-          <input type="radio" name="level" id="easy" value="easy" checked>
-          Easy
+        <label class="level_option">
+          <input type="radio" name="level" id="easy" value="easy" />
+          <span>Easy &mdash; 8 tiles</span>
         </label>
-        <label>
-          <input type="radio" name="level" id="normal" value="normal">
-          Normal
+        <label class="level_option">
+          <input type="radio" name="level" id="normal" value="normal" />
+          <span>Normal &mdash; 16 tiles</span>
         </label>
-        <label>
-          <input type="radio" name="level" id="hard" value="hard">
-          Hard
+        <label class="level_option">
+          <input type="radio" name="level" id="hard" value="hard" />
+          <span>Hard &mdash; 32 tiles</span>
         </label>
       </div>
-      <button id="start-btn">Start</button>
-    </div>
-  </div>
+    </section>
 
-  <!-- GAME PAGE -->
-  <div id="game-page" class="page hidden">
-    <div class="game-box">
-      <h1 class="game-title">GAmE YO</h1>
-      <p class="tries">Tries: <span id="tries">0</span></p>
-      <p id="solved-msg" class="solved-msg hidden">ALL SOLVED!</p>
-      <button id="new-game-btn" class="hidden">New Game</button>
-      <div class="cells_container" id="cells_container"></div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+    <section id="game" class="game hidden">
+      <header class="game_header">
+        <h2 id="level_title">Easy</h2>
+        <p class="attempts_line">Attempts: <span id="attempts" class="attempts">0</span></p>
+        <div class="game_actions">
+          <button id="restart" type="button">Restart</button>
+          <button id="change_level" type="button">Change level</button>
+        </div>
+      </header>
+      <p id="status" class="status hidden">🎉 All pairs matched!</p>
+      <div class="cells_container"></div>
+    </section>
+  </main>
+  <script src="app.js"></script>
 </body>
 </html>
