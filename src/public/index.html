@@ -3,38 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Memory Matching Game</title>
+  <title>Memory Game</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="game-container">
-    <h1>Memory Matching Game</h1>
-    <p class="instructions">
-      Match pairs of identical numbers to win. Fewer attempts is better.
-    </p>
+  <div class="game_container">
+    <h1>Memory Game</h1>
 
-    <!-- Level Selection -->
-    <section class="levels_container" aria-label="Level selection">
-      <h2>Choose a Level</h2>
-      <label for="easy">Easy (4 pairs)</label>
-      <input type="radio" id="easy" name="level" value="easy" checked />
+    <div class="levels_container">
+      <label>
+        <input type="radio" name="level" id="easy" value="easy" />
+        Easy
+      </label>
+      <label>
+        <input type="radio" name="level" id="normal" value="normal" />
+        Normal
+      </label>
+      <label>
+        <input type="radio" name="level" id="hard" value="hard" />
+        Hard
+      </label>
+    </div>
 
-      <label for="normal">Normal (8 pairs)</label>
-      <input type="radio" id="normal" name="level" value="normal" />
+    <div class="stats">
+      <span>Attempts: <strong id="attempts">0</strong></span>
+      <span>Matches: <strong id="matches">0</strong> / <strong id="total_pairs">0</strong></span>
+    </div>
 
-      <label for="hard">Hard (16 pairs)</label>
-      <input type="radio" id="hard" name="level" value="hard" />
+    <div class="cells_container" id="cells_container"></div>
 
-      <button id="start-button">Start Game</button>
-    </section>
-
-    <!-- Game Board (hidden until a level is chosen) -->
-    <section id="game-board" class="game-board" style="display: none;">
-      <p id="attempts" aria-live="polite">Attempts: 0</p>
-      <div class="cells_container" role="list" aria-label="Game tiles"></div>
-      <p id="status-message" class="status-message" aria-live="polite"></p>
-    </section>
-  </main>
+    <div class="message" id="message"></div>
+  </div>
 
   <script src="app.js"></script>
 </body>
