@@ -1,13 +1,12 @@
 {
-  "name": "memory-game-madhukayal88-glitch",
+  "name": "memory-game",
   "version": "1.0.0",
-  "description": "Node.js memory matching game - match pairs of numbers",
+  "description": "Memory Matching Game",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "engines": {
-    "node": ">=16"
-  },
-  "license": "MIT"
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
