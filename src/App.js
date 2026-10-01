@@ -1,138 +1,160 @@
-'use strict';
+(function () {
+  'use strict';
 
-const PAIRS_BY_LEVEL = { easy: 4, normal: 8, hard: 16 };
+  const LEVELS = {
+    easy: { tiles: 8, pairs: 4, columns: 4 },
+    normal: { tiles: 16, pairs: 8, columns: 4 },
+    hard: { tiles: 32, pairs: 16, columns: 8 },
+  };
 
-const landingEl = document.getElementById('landing');
-const gameEl = document.getElementById('game');
-const cellsContainer = document.querySelector('.cells_container');
-const attemptsEl = document.getElementById('attempts');
-const levelTitleEl = document.getElementById('level_title');
-const statusEl = document.getElementById('status');
+  const state = {
+    level: null,
+    tiles: [],
+    firstIndex: null,
+    secondIndex: null,
+    attempts: 0,
+    matches: 0,
+    totalPairs: 0,
+    locked: false,
+    started: false,
+  };
 
-let currentLevel = null;
-let firstTile = null;
-let lockBoard = false;
-let attempts = 0;
-let matchedPairs = 0;
-let totalPairs = 0;
+  const els = {
+    cellsContainer: document.getElementById('cells_container'),
+    attempts: document.getElementById('attempts'),
+    matches: document.getElementById('matches'),
+    totalPairs: document.getElementById('total_pairs'),
+    message: document.getElementById('message'),
+    easy: document.getElementById('easy'),
+    normal: document.getElementById('normal'),
+    hard: document.getElementById('hard'),
+  };
 
-// --- Level selection ---
-
-document.querySelectorAll('.levels_container input[name="level"]').forEach((radio) => {
-  radio.addEventListener('change', (event) => startGame(event.target.value));
-});
-
-document.getElementById('restart').addEventListener('click', () => {
-  if (currentLevel) startGame(currentLevel);
-});
-
-document.getElementById('change_level').addEventListener('click', showLanding);
-
-function startGame(level) {
-  currentLevel = level;
-  totalPairs = PAIRS_BY_LEVEL[level];
-  matchedPairs = 0;
-  attempts = 0;
-  firstTile = null;
-  lockBoard = false;
-
-  attemptsEl.textContent = '0';
-  levelTitleEl.textContent = level.charAt(0).toUpperCase() + level.slice(1);
-  statusEl.classList.add('hidden');
-  landingEl.classList.add('hidden');
-  gameEl.classList.remove('hidden');
-
-  renderTiles();
-}
-
-function showLanding() {
-  currentLevel = null;
-  gameEl.classList.add('hidden');
-  landingEl.classList.remove('hidden');
-  document.querySelectorAll('.levels_container input[name="level"]').forEach((r) => {
-    r.checked = false;
-  });
-}
-
-// --- Board ---
-
-function renderTiles() {
-  const numbers = [];
-  for (let i = 1; i <= totalPairs; i += 1) {
-    numbers.push(i, i);
-  }
-  shuffle(numbers);
-
-  cellsContainer.innerHTML = '';
-  cellsContainer.className = 'cells_container ' + currentLevel;
-
-  numbers.forEach((number) => {
-    const tile = document.createElement('div');
-    tile.className = 'cell';
-    tile.dataset.value = String(number);
-
-    const label = document.createElement('span');
-    label.className = 'tile_number';
-    label.textContent = String(number);
-    tile.appendChild(label);
-
-    tile.addEventListener('click', () => handleTileClick(tile));
-    cellsContainer.appendChild(tile);
-  });
-}
-
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-// --- Gameplay ---
-
-function handleTileClick(tile) {
-  // Edge cases: ignore clicks while a mismatched pair is being shown,
-  // on already matched tiles, or on the tile that is already flipped.
-  if (lockBoard) return;
-  if (tile.classList.contains('matched')) return;
-  if (tile.classList.contains('flipped')) return;
-
-  reveal(tile);
-
-  if (!firstTile) {
-    firstTile = tile;
-    return;
-  }
-
-  // Second tile flipped: this counts as one complete attempt.
-  attempts += 1;
-  attemptsEl.textContent = String(attempts);
-
-  if (firstTile.dataset.value === tile.dataset.value) {
-    firstTile.classList.add('matched');
-    tile.classList.add('matched');
-    firstTile = null;
-    matchedPairs += 1;
-    if (matchedPairs === totalPairs) {
-      statusEl.classList.remove('hidden');
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-  } else {
-    lockBoard = true;
-    const first = firstTile;
-    firstTile = null;
-    setTimeout(() => {
-      hide(first);
-      hide(tile);
-      lockBoard = false;
-    }, 700);
+    return arr;
   }
-}
 
-function reveal(tile) {
-  tile.classList.add('flipped');
-}
+  function createDeck(pairs) {
+    const deck = [];
+    for (let i = 1; i <= pairs; i++) {
+      deck.push(i);
+      deck.push(i);
+    }
+    return shuffle(deck);
+  }
 
-function hide(tile) {
-  tile.classList.remove('flipped');
-}
+  function resetState(level) {
+    state.level = level;
+    state.tiles = createDeck(LEVELS[level].pairs);
+    state.firstIndex = null;
+    state.secondIndex = null;
+    state.attempts = 0;
+    state.matches = 0;
+    state.totalPairs = LEVELS[level].pairs;
+    state.locked = false;
+    state.started = true;
+  }
+
+  function updateStats() {
+    els.attempts.textContent = state.attempts;
+    els.matches.textContent = state.matches;
+    els.totalPairs.textContent = state.totalPairs;
+  }
+
+  function renderBoard() {
+    els.cellsContainer.innerHTML = '';
+    els.cellsContainer.className = `cells_container ${state.level}`;
+
+    state.tiles.forEach((value, index) => {
+      const btn = document.createElement('button');
+      btn.classList.add('cell');
+      btn.dataset.index = index;
+      btn.dataset.value = value;
+      btn.textContent = value;
+      btn.setAttribute('aria-label', 'Memory tile');
+      btn.addEventListener('click', () => handleTileClick(index, btn));
+      els.cellsContainer.appendChild(btn);
+    });
+  }
+
+  function handleTileClick(index, btn) {
+    if (!state.started || state.locked) return;
+    if (btn.classList.contains('flipped') || btn.classList.contains('matched')) return;
+
+    // Prevent clicking the same tile twice as the same selection
+    if (state.firstIndex === index) return;
+
+    btn.classList.add('flipped');
+
+    if (state.firstIndex === null) {
+      state.firstIndex = index;
+      return;
+    }
+
+    state.secondIndex = index;
+    state.attempts += 1;
+    updateStats();
+
+    checkMatch();
+  }
+
+  function checkMatch() {
+    const firstVal = state.tiles[state.firstIndex];
+    const secondVal = state.tiles[state.secondIndex];
+
+    if (firstVal === secondVal) {
+      // Match
+      const firstEl = els.cellsContainer.querySelector(`[data-index="${state.firstIndex}"]`);
+      const secondEl = els.cellsContainer.querySelector(`[data-index="${state.secondIndex}"]`);
+      firstEl.classList.remove('flipped');
+      secondEl.classList.remove('flipped');
+      firstEl.classList.add('matched');
+      secondEl.classList.add('matched');
+
+      state.matches += 1;
+      updateStats();
+      resetSelection();
+
+      if (state.matches === state.totalPairs) {
+        endGame();
+      }
+    } else {
+      // No match - lock briefly and flip back
+      state.locked = true;
+      setTimeout(() => {
+        const firstEl = els.cellsContainer.querySelector(`[data-index="${state.firstIndex}"]`);
+        const secondEl = els.cellsContainer.querySelector(`[data-index="${state.secondIndex}"]`);
+        if (firstEl) firstEl.classList.remove('flipped');
+        if (secondEl) secondEl.classList.remove('flipped');
+        resetSelection();
+        state.locked = false;
+      }, 800);
+    }
+  }
+
+  function resetSelection() {
+    state.firstIndex = null;
+    state.secondIndex = null;
+  }
+
+  function endGame() {
+    state.started = false;
+    els.message.textContent = `🎉 You solved it in ${state.attempts} attempts!`;
+  }
+
+  function startGame(level) {
+    if (!level) return;
+    els.message.textContent = '';
+    resetState(level);
+    updateStats();
+    renderBoard();
+  }
+
+  els.easy.addEventListener('change', () => startGame('easy'));
+  els.normal.addEventListener('change', () => startGame('normal'));
+  els.hard.addEventListener('change', () => startGame('hard'));
+})();
