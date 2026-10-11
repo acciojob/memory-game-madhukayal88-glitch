@@ -1,0 +1,179 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  background: #0000ff;
+  color: #111;
+}
+
+.app {
+  min-height: 100vh;
+  background: #0000ff;
+  padding: 24px 16px 48px;
+  text-align: center;
+}
+
+/* ---------- Level selection ---------- */
+
+.levels_container {
+  max-width: 720px;
+  margin: 0 auto 24px;
+}
+
+.welcome {
+  margin: 0 0 4px;
+  font-size: 2.2rem;
+  color: #111;
+}
+
+.instructions {
+  margin: 0 0 18px;
+  font-size: 1rem;
+  color: #111;
+}
+
+.level-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.level-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #111;
+}
+
+.level-option input {
+  cursor: pointer;
+}
+
+.level-name {
+  font-weight: 700;
+}
+
+.level-count {
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.start-button,
+.new-game {
+  font-family: inherit;
+  font-size: 1.05rem;
+  padding: 8px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.start-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.start-button:not(:disabled):hover,
+.new-game:hover {
+  background: #f1f1f1;
+}
+
+/* ---------- Game board ---------- */
+
+.game {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.game-title {
+  margin: 0 0 4px;
+  font-size: 2rem;
+  color: #111;
+}
+
+.mode-heading {
+  margin: 0 0 10px;
+  font-size: 1.6rem;
+  color: #111;
+}
+
+.game-info {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+  color: #111;
+}
+
+.status {
+  font-weight: 700;
+  color: #ffd400;
+}
+
+.cells_container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.tile {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(orange, #ffb347);
+  border: 2px solid #0000ff;
+  border-radius: 6px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #111;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s ease, opacity 0.2s ease;
+}
+
+.tile:hover {
+  transform: translateY(-2px);
+}
+
+.tile-value {
+  pointer-events: none;
+}
+
+.tile.flipped {
+  background: linear-gradient(#ffe08a, #ffc966);
+}
+
+.tile.matched {
+  background: linear-gradient(#ffd97a, #ffb347);
+  opacity: 0.85;
+  cursor: default;
+  box-shadow: inset 0 0 0 3px #ffffff;
+}
+
+.tile.matched:hover {
+  transform: none;
+}
+
+.new-game {
+  margin-top: 20px;
+}
